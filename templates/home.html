@@ -1,0 +1,309 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Student Exam Performance Prediction</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+            margin: 0;
+            padding: 30px 15px;
+        }
+
+        .login {
+            max-width: 650px;
+            margin: 0 auto;
+            padding: 30px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #222;
+            font-size: 26px;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .mb-3 {
+            margin-bottom: 20px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 15px;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 17px;
+            cursor: pointer;
+        }
+
+        .btn:hover {
+            background: #0056b3;
+        }
+
+        .result {
+            margin-top: 25px;
+            padding: 20px;
+            background: #e8f5e9;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .result h2 {
+            color: #16803c;
+            margin-bottom: 5px;
+        }
+
+        .error {
+            margin-top: 20px;
+            padding: 15px;
+            background: #ffebee;
+            color: #c62828;
+            border-radius: 8px;
+            overflow-wrap: anywhere;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="login">
+
+    <h1>Student Exam Performance Indicator</h1>
+
+    <form action="{{ url_for('predict_datapoint') }}"
+          method="POST">
+
+        <h2>Student Exam Performance Prediction</h2>
+
+        <!-- Gender -->
+        <div class="mb-3">
+            <label class="form-label">Gender</label>
+
+            <select class="form-control"
+                    name="gender" required>
+
+                <option value="">Select Gender</option>
+
+                <option value="male"
+                    {% if request.form.get('gender') == 'male' %}selected{% endif %}>
+                    Male
+                </option>
+
+                <option value="female"
+                    {% if request.form.get('gender') == 'female' %}selected{% endif %}>
+                    Female
+                </option>
+
+            </select>
+        </div>
+
+        <!-- Ethnicity -->
+        <div class="mb-3">
+            <label class="form-label">Race or Ethnicity</label>
+
+            <select class="form-control"
+                    name="ethnicity" required>
+
+                <option value="">Select Ethnicity</option>
+
+                {% for group in ['group A', 'group B', 'group C', 'group D', 'group E'] %}
+
+                <option value="{{ group }}"
+                    {% if request.form.get('ethnicity') == group %}selected{% endif %}>
+                    {{ group }}
+                </option>
+
+                {% endfor %}
+
+            </select>
+        </div>
+
+        <!-- Parental Education -->
+        <div class="mb-3">
+
+            <label class="form-label">
+                Parental Level of Education
+            </label>
+
+            <select class="form-control"
+                    name="parental_level_of_education"
+                    required>
+
+                <option value="">Select Parent Education</option>
+
+                {% for education in [
+                    "associate's degree",
+                    "bachelor's degree",
+                    "high school",
+                    "master's degree",
+                    "some college",
+                    "some high school"
+                ] %}
+
+                <option value="{{ education }}"
+                    {% if request.form.get('parental_level_of_education') == education %}selected{% endif %}>
+                    {{ education }}
+                </option>
+
+                {% endfor %}
+
+            </select>
+        </div>
+
+        <!-- Lunch -->
+        <div class="mb-3">
+
+            <label class="form-label">Lunch Type</label>
+
+            <select class="form-control"
+                    name="lunch" required>
+
+                <option value="">Select Lunch Type</option>
+
+                {% for lunch in ['standard', 'free/reduced'] %}
+
+                <option value="{{ lunch }}"
+                    {% if request.form.get('lunch') == lunch %}selected{% endif %}>
+                    {{ lunch }}
+                </option>
+
+                {% endfor %}
+
+            </select>
+        </div>
+
+        <!-- Test Preparation -->
+        <div class="mb-3">
+
+            <label class="form-label">
+                Test Preparation Course
+            </label>
+
+            <select class="form-control"
+                    name="test_preparation_course"
+                    required>
+
+                <option value="">Select Course</option>
+
+                {% for course in ['none', 'completed'] %}
+
+                <option value="{{ course }}"
+                    {% if request.form.get('test_preparation_course') == course %}selected{% endif %}>
+                    {{ course }}
+                </option>
+
+                {% endfor %}
+
+            </select>
+        </div>
+
+        <!-- Reading Score -->
+        <div class="mb-3">
+
+            <label class="form-label">
+                Reading Score out of 100
+            </label>
+
+            <input class="form-control"
+                   type="number"
+                   name="reading_score"
+                   placeholder="Enter Reading Score"
+                   min="0"
+                   max="100"
+                   step="any"
+                   value="{{ request.form.get('reading_score', '') }}"
+                   required>
+        </div>
+
+        <!-- Writing Score -->
+        <div class="mb-3">
+
+            <label class="form-label">
+                Writing Score out of 100
+            </label>
+
+            <input class="form-control"
+                   type="number"
+                   name="writing_score"
+                   placeholder="Enter Writing Score"
+                   min="0"
+                   max="100"
+                   step="any"
+                   value="{{ request.form.get('writing_score', '') }}"
+                   required>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="mb-3">
+
+            <button class="btn" type="submit">
+                Predict your Maths Score
+            </button>
+
+        </div>
+
+    </form>
+
+    <!-- Prediction Result -->
+    {% if results is defined and results is not none %}
+
+    <div class="result">
+
+        <h2>Prediction Successful!</h2>
+
+        <h1>{{ results }} / 100</h1>
+
+        <p>Predicted Mathematics Score</p>
+
+    </div>
+
+    {% endif %}
+
+    <!-- Error Message -->
+    {% if error %}
+
+    <div class="error">
+        <strong>Prediction Error:</strong>
+        {{ error }}
+    </div>
+
+    {% endif %}
+
+</div>
+
+</body>
+</html>
